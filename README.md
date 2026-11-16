@@ -156,7 +156,7 @@ A partir do 3º quadro aparece o cenário escurecido, sem os patos e o cachorro 
 ## Como gerar e aplicar
 
 ```powershell
-cd C:\Users\leopa\Documents\repositorios\REA\duckhunt_patch
+cd caminho\para\New-Duckhunt
 python build.py "C:\caminho\do\seu\dump.nes"
 ```
 
