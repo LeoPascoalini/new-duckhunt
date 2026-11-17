@@ -2,10 +2,14 @@
 ;  Duck Hunt (NES, NROM-128) - patch V5: PROTOCOLO 2 (a pistola decide o acerto)
 ;
 ;  A pistola (controle 2) olha a piscada na TV e decide sozinha se acertou:
-;      B           = gatilho (pulso de ~50 ms)
-;      A           = acertou (Game A) / acertou o 1o alvo (Game B/C)
-;      A + B       = acertou o 2o alvo (Game B/C), no mesmo relatório HID
+;      A           = "vejo luz" (contínuo). Esta ROM IGNORA o A: ele só existe para
+;                    a pistola parecer um controle comum (configurar no Recalbox)
+;      B           = gatilho (pulso de ~50 ms), vale mesmo com o A apertado
+;      Start       = acertou (Game A) / acertou o 1o alvo (Game B/C) (pulso de ~50 ms)
+;      Select      = acertou o 2o alvo (Game B/C) (pulso de ~50 ms)
 ;      nada        = errou
+;  O jogo original só lê o direcional do controle 2 ($CA7C: LDA $17 / AND #$0F, o pato
+;  do Game A); A, B, Start e Select do controle 2 ficam livres para a pistola.
 ;  O jogo nunca espera a pistola:
 ;    - a piscada é curta e fixa: 2 pretos, 2 de quadrado, 1 preto
 ;      (Game B/C com 2 alvos: 2 pretos, 2 quadrado 1, 1 preto, 2 quadrado 2, 1 preto);
@@ -26,6 +30,12 @@
 .setcpu "6502"
 
 PRAZO       = 9         ; quadros (~150 ms) aceitando "acertou" depois da piscada
+
+; Botões do controle 2, no formato devolvido por LePad2
+BOTAO_A      = $01      ; luz (ignorado)
+BOTAO_B      = $02      ; gatilho
+BOTAO_SELECT = $04      ; acertou o 2o alvo
+BOTAO_START  = $08      ; acertou / acertou o 1o alvo
 
 ; -----------------------------------------------------------------------------
 ;  Hardware
@@ -58,7 +68,7 @@ prazo       = $07E0     ; quadros que ainda aceitam "acertou" (0 = nenhum tiro p
 alvoJ1      = $07E1     ; alvo do 1o quadrado (0 = pato 1, 1 = pato 2)
 alvoJ2      = $07E2     ; alvo do 2o quadrado ($FF = não houve 2o quadrado)
 tmpPad      = $07E3
-recebido    = $07E4     ; 0 = nada, 1 = A, 3 = A + B (o primeiro que chegou)
+recebido    = $07E4     ; 0 = nada, 1 = Start (1o alvo), 2 = Select (2o alvo): o primeiro que chegou
 
 ; -----------------------------------------------------------------------------
 ;  Rotinas do jogo reaproveitadas
@@ -97,37 +107,42 @@ ResultadoTitulo = $D235 ; A = 1 (acerto: começa a partida) ou 2 (erro: próxima
 .segment "NOVO"
 
 ; -----------------------------------------------------------------------------
-;  LePad2 - lê A e B do controle 2.  Saída: A = %000000BA.  Preserva X e Y.
+;  LePad2 - lê A, B, Select e Start do controle 2.
+;  Saída: A = %0000 Start Select B A (ver BOTAO_*).  Preserva X e Y.
+;  Cada leitura entra pelo bit 7 de tmpPad (ROR); o marcador no bit 3 sai pelo
+;  carry depois da 4a leitura e encerra o laço sem usar X nem Y.
 ; -----------------------------------------------------------------------------
 LePad2:
         lda #$01
         sta JOY1
         lda #$00
         sta JOY1
-        lda JOY2                ; 1a leitura serial = A
+        lda #$08                ; marcador
+        sta tmpPad
+@le:    lda JOY2                ; leituras seriais: A, B, Select, Start
         and #$03                ; bit 0 (controle) ou bit 1 (expansão Famicom)
-        beq @a0
-        lda #$01
-@a0:    sta tmpPad
-        lda JOY2                ; 2a leitura serial = B
-        and #$03
-        beq @b0
-        lda #$02
-        ora tmpPad
-        rts
-@b0:    lda tmpPad
+        cmp #$01                ; C = 1 se o botão está apertado
+        ror tmpPad
+        bcc @le
+        lda tmpPad              ; %Start Select B A 0000
+        lsr a
+        lsr a
+        lsr a
+        lsr a
         rts
 
 ; -----------------------------------------------------------------------------
 ;  LerGatilho - substitui LDA $4017 em $D131. Devolve A no formato da Zapper
-;  (bit 4 = gatilho). Só conta B SOZINHO e fora do prazo: A + B é mensagem.
-;  O jogo registra o tiro quando o bit volta a 0 (como a Zapper real).
+;  (bit 4 = gatilho). Conta B fora do prazo, com ou sem A (luz), mas nunca junto
+;  com Start/Select (mensagem). O jogo registra o tiro quando o bit volta a 0
+;  (como a Zapper real).
 ; -----------------------------------------------------------------------------
 LerGatilho:
         lda prazo
         bne @nada
         jsr LePad2
-        cmp #$02                ; só B
+        and #BOTAO_B | BOTAO_SELECT | BOTAO_START   ; o A (luz) não importa
+        cmp #BOTAO_B
         bne @nada
         lda #$10
         rts
@@ -135,17 +150,21 @@ LerGatilho:
         rts
 
 ; -----------------------------------------------------------------------------
-;  Escuta - guarda a primeira mensagem que chegar (1 = A, 3 = A + B).
+;  Escuta - guarda a primeira mensagem que chegar (1 = Start, 2 = Select).
 ;  O botão fica apertado ~3 quadros; olhar 1 vez por quadro basta. Preserva X e Y.
 ; -----------------------------------------------------------------------------
 Escuta:
         lda recebido
         bne @fim
         jsr LePad2
-        lsr a                   ; C = A; A = B
-        bcc @fim
-        rol a                   ; A = (B << 1) | 1
-        sta recebido
+        and #BOTAO_START | BOTAO_SELECT
+        beq @fim
+        cmp #BOTAO_SELECT
+        beq @alvo2
+        lda #$01                ; Start: 1o alvo
+        bne @grava              ; (sempre salta)
+@alvo2: lda #$02                ; Select (sozinho): 2o alvo
+@grava: sta recebido
 @fim:   rts
 
 EsperaQuadro:                   ; espera o próximo NMI e escuta o controle 2
@@ -255,7 +274,7 @@ FlashSemQuadrado:
 
 ; -----------------------------------------------------------------------------
 ;  PorQuadro - no laço principal, 1x por quadro (no lugar de JSR $C284).
-;  Com um tiro pendente: se chegou A, derruba o 1o alvo; A + B, o 2o; senão
+;  Com um tiro pendente: se chegou Start, derruba o 1o alvo; Select, o 2o; senão
 ;  conta o prazo. Quando o prazo acaba (ou chega a mensagem), gasta a bala.
 ; -----------------------------------------------------------------------------
 PorQuadro:
@@ -267,7 +286,7 @@ PorQuadro:
         jsr Escuta
         lda recebido
         beq @semMsg
-        cmp #$03
+        cmp #$02
         beq @j2
         lda alvoJ1
         jmp @aplica

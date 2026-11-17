@@ -3,10 +3,11 @@
 A pistola simulada segue as regras de "firmware pistola/PROTOCOLO_NOVO.md", em quadros:
   - vê a TV com atraso Lout (quadros entre o jogo desenhar e o tubo mostrar);
   - o que ela aperta chega no jogo com atraso Lin;
+  - A = luz o tempo todo (segura 9 quadros, como o firmware); a ROM ignora o A;
   - sincroniza pelo início do preto quando a mira está num ponto claro, e mede a "ida";
     num ponto escuro usa a ida medida antes;
-  - janela 1 (quadros 2-3 do preto): primeira luz -> A;
-  - janela 2 (quadros 5-6) + quadro 7 escuro -> A + B;
+  - janela 1 (quadros 2-3 do preto): primeira luz -> Start;
+  - janela 2 (quadros 5-6) + quadro 7 escuro -> Select;
   - ignora o próprio gatilho até o fim do tiro.
 
 Uso:
@@ -30,17 +31,26 @@ def caso(nome, ok, detalhe=""):
 
 class Pistola2:
     IDA_INICIAL = 9             # ~150 ms: pulso do gatilho (50 ms) + jogo + atrasos
+    SEGURA_A = 9                # A = luz, segurada ~150 ms depois do último pulso (SEGURA_LUZ_MS)
 
     def __init__(self, n, Lout=2, Lin=2):
         self.n, self.Lout, self.Lin = n, Lout, Lin
-        self.botoes = {}            # quadro do jogo -> botões
+        self.botoes = {}            # quadro do jogo -> botões (gatilho e mensagens)
         self.ida = self.IDA_INICIAL # ida estimada (gatilho -> 1o quadro preto na TV)
         self.medidas = []
         self.e = None
         self.decisoes = []
+        self.a_no_gatilho = []      # o A (luz) estava apertado quando o B chegou?
+
+    def luz_a(self, q):
+        """A no quadro q do jogo: a pistola viu luz (TV em q - Lin) nos últimos SEGURA_A quadros."""
+        return any(self._tv(q - self.Lin - k) for k in range(self.SEGURA_A))
 
     def pad2(self, q):
-        return self.botoes.get(q, set())
+        bot = set(self.botoes.get(q, set()))
+        if self.luz_a(q):
+            bot.add("A")
+        return bot
 
     def _apertar(self, q0, bot, n=3):
         for q in range(q0, q0 + n):
@@ -59,6 +69,7 @@ class Pistola2:
             return False
         tg = self.n.quadro
         self._apertar(tg + self.Lin, {"B"})
+        self.a_no_gatilho.append(self.luz_a(tg + self.Lin))
         self.e = dict(tg=tg, t0=None, sync=None, prox=2, decidiu=None, luz2=False, fim=False)
         return True
 
@@ -91,13 +102,13 @@ class Pistola2:
                 rel = e["prox"]
                 luz = self._tv(e["t0"] + rel)
                 if rel in (2, 3) and luz and not e["decidiu"]:
-                    e["decidiu"] = "A"
-                    self._apertar(t + self.Lin, {"A"})
+                    e["decidiu"] = "Start"
+                    self._apertar(t + self.Lin, {"START"})
                 if rel in (5, 6) and luz:
                     e["luz2"] = True
                 if rel == 7 and not e["decidiu"] and e["luz2"] and not luz:
-                    e["decidiu"] = "A+B"
-                    self._apertar(t + self.Lin, {"A", "B"})
+                    e["decidiu"] = "Select"
+                    self._apertar(t + self.Lin, {"SELECT"})
                 if rel >= 8 + 10:
                     e["fim"] = True
                 e["prox"] += 1
@@ -122,6 +133,21 @@ def esperar_voando(n, p, slots, limite=3000):
     return False
 
 
+def esperar_separados(n, p, slots, dist=48, limite=3000):
+    """Espera os dois alvos voando e longe um do outro. O quadrado do acerto tem 32x32 e é
+    centrado no alvo: com os alvos perto, mirar num é mirar dentro do quadrado do outro, e
+    o resultado depende do sorteio do jogo (que muda com qualquer mudança de ciclos na ROM).
+    `dist` dá folga para o movimento até a piscada (~15 quadros)."""
+    s = n.mem._subject
+    a, b = slots
+    for _ in range(limite):
+        rodar(n, p, 1)
+        voando = all(s[x] and s[x + 1] == 3 for x in slots)
+        if voando and (abs(s[a + 3] - s[b + 3]) > dist or abs(s[a + 2] - s[b + 2]) > dist):
+            return True
+    return False
+
+
 def nova_partida(rom, modo, Lout=2, Lin=2):
     n = NES(rom)
     p = Pistola2(n, Lout, Lin)
@@ -136,6 +162,15 @@ def nova_partida(rom, modo, Lout=2, Lin=2):
 
 def segue(slot):
     return lambda nes: (nes.mem._subject[slot + 3], nes.mem._subject[slot + 2])
+
+
+def segue_canto(slot, dx=13, dy=-12):
+    """Mira num canto do quadrado do alvo, fora do corpo do pato: ali fica o céu, claro e
+    parado. O quadrado é centrado no alvo: 32x32 no pato, 16x12 no prato (use dx=6, dy=-4).
+    Mirando no corpo, o pixel do pato pisca com a animação e às vezes escurece logo antes do
+    preto, o que adianta a sincronia pelo céu (fraqueza conhecida da regra de sincronia,
+    medida à parte; não é o que estes testes verificam)."""
+    return lambda nes: (nes.mem._subject[slot + 3] + dx, nes.mem._subject[slot + 2] + dy)
 
 
 def tiro(n, p, mira, quadros=45):
@@ -182,8 +217,9 @@ def main():
     caso("pato voando", esperar_voando(n, p, (0x0300,)))
     masks, tiros, acertos, b0, b1 = tiro(n, p, CEU)
     caso("piscada: 2 pretos, 2 quadrado, 1 preto", piscada(masks) == FORMA_1, f"{[hex(m) for m in piscada(masks)]}")
-    caso("mira no céu -> nenhum acerto", not acertos, f"{acertos}")
-    caso("um tiro registrado (B não vira tiro fantasma)", len(tiros) == 1, f"{tiros}")
+    caso("mira no céu -> nenhum acerto (o A da luz não é acerto)", not acertos, f"{acertos}")
+    caso("o B chegou com o A (luz do céu) apertado", p.a_no_gatilho[-1] is True)
+    caso("um tiro registrado (B com A vale; não vira tiro fantasma)", len(tiros) == 1, f"{tiros}")
     caso("bala gasta depois do prazo", b1 == b0 - 1, f"{b0}->{b1}")
     caso("pistola sincronizou pelo céu e mediu a ida", p.ida is not None, f"ida={p.ida} quadros")
     caso("pato continua voando", s[0x0301] == 3)
@@ -191,6 +227,30 @@ def main():
     caso("mira no pato -> acerto no pato 1", acertos == [1], f"{acertos}, pistola: {p.decisoes[-1]}")
     caso("um tiro registrado", len(tiros) == 1, f"{tiros}")
     caso("bala gasta", b1 == b0 - 1, f"{b0}->{b1}")
+
+    print("\nControle 2 fora de um tiro: A (luz do céu) o tempo todo, Start e Select soltos")
+    n, p = nova_partida(rom, 0)
+    s = n.mem._subject
+    esperar_voando(n, p, (0x0300,))
+    n.mira = CEU
+    tiros, acertos = [], []
+    n.mem.subscribe_to_write([0x00B5], lambda a, v: tiros.append(n.quadro) if v == 1 else None)
+    n.mem.subscribe_to_write([0x0301, 0x0351], lambda a, v: acertos.append(a) if v == 4 else None)
+    rodar(n, p, p.Lout + p.Lin + 3)
+    balas = s[0xBA]
+    q = n.quadro
+    p._apertar(q + 2, {"START"})
+    p._apertar(q + 12, {"SELECT"})
+    pos = []
+    for _ in range(30):
+        rodar(n, p, 1)
+        pos.append((s[0x0303], s[0x0302]))
+    caso("o A (luz) estava apertado", "A" in p.pad2(n.quadro))
+    caso("Start e Select soltos: nenhum tiro", not tiros, f"{tiros}")
+    caso("Start e Select soltos: nenhum acerto", not acertos, f"{acertos}")
+    caso("balas iguais", s[0xBA] == balas, f"{balas}->{s[0xBA]}")
+    caso("o pato continua voando e se mexendo (sem pausa)", s[0x0301] == 3 and len(set(pos[-15:])) > 1,
+         f"estado {s[0x0301]}, posições {len(set(pos[-15:]))}")
 
     print("\nGame A, última bala no céu: o pato só foge depois do prazo")
     n, p = nova_partida(rom, 0)
@@ -214,14 +274,43 @@ def main():
          f"fim da piscada {fim_pisca}, fuga {fugiu}")
     caso("balas = 0", s[0xBA] == 0, f"{s[0xBA]}")
 
-    print("\nGame A, última bala no pato com Bluetooth lento (Lin=5): acerto atrasado ainda vale")
-    n, p = nova_partida(rom, 0, Lout=2, Lin=5)
-    s = n.mem._subject
-    esperar_voando(n, p, (0x0300,))
-    tiro(n, p, CEU); tiro(n, p, CEU)
-    masks, tiros, acertos, b0, b1 = tiro(n, p, segue(0x0300))
-    caso("acerto no pato 1", acertos == [1], f"{acertos}, pistola: {p.decisoes[-1]}")
-    caso("o pato não fugiu antes", s[0x4E] == 0, f"$4E={s[0x4E]}")
+    print("\nGame A, última bala, Start atrasado (Bluetooth lento): vale só dentro do prazo")
+    # Controle 2 roteirizado (sem a pistola simulada): 2 tiros no céu, o 3o com o Start
+    # chegando `atraso` quadros depois da piscada. Testa só a ROM, sem depender de onde
+    # o pato voa (o sorteio do jogo muda com qualquer mudança de ciclos na ROM).
+    for atraso, vale in ((PRAZO - 3, True), (PRAZO + 2, False)):
+        n = NES(rom)
+        roteiro = {}
+        p = Pistola2(n)                       # só para rodar(); não atira
+        n.pad2 = lambda q, r=roteiro: r.get(q, set())
+        rodar(n, p, 60)
+        s = n.mem._subject
+        while s[0x5FE] != 0:
+            n.apertar(["SELECT"], quadros=8, soltar=8)
+        n.apertar(["START"], quadros=8, soltar=8)
+        esperar_voando(n, p, (0x0300,))
+        acertos = []
+        n.mem.subscribe_to_write([0x0301], lambda a, v: acertos.append(1) if v == 4 else None)
+        for k in range(3):
+            q0 = n.quadro + 1
+            for q in range(q0, q0 + 3):
+                roteiro[q] = {"B"}
+            fim, viu_preto = None, False
+            for _ in range(40):
+                rodar(n, p, 1)
+                m = n.mask & 0x18
+                viu_preto = viu_preto or m == 0
+                if fim is None and viu_preto and m == 0x18:
+                    fim = n.quadro - 1                 # 1o quadro com a cena de volta
+                    if k == 2:
+                        for q in range(fim + atraso, fim + atraso + 3):
+                            roteiro[q] = {"START"}
+            rodar(n, p, 20)
+        texto = "dentro" if vale else "depois"
+        caso(f"Start {atraso} quadros após a piscada ({texto} do prazo): {'acerto' if vale else 'sem acerto'}",
+             (acertos == [1]) == vale, f"{acertos}, balas {s[0xBA]}")
+        if vale:
+            caso("o pato não fugiu antes do Start chegar", s[0x4E] == 0, f"$4E={s[0x4E]}")
 
     print("\nPistola com a ida errada (medição antiga de outra conexão), mirando no céu")
     for ida_errada in (4, 15):
@@ -244,9 +333,8 @@ def main():
         s = n.mem._subject
         esperar_voando(n, p, (0x0300, 0x0350))
         tiro(n, p, CEU)                                     # mede a ida
-        if not (s[0x0301] == 3 and s[0x0351] == 3):
-            esperar_voando(n, p, (0x0300, 0x0350))
-        masks, tiros, acertos, b0, b1 = tiro(n, p, segue(slot))
+        caso("os dois patos voando e separados", esperar_separados(n, p, (0x0300, 0x0350)))
+        masks, tiros, acertos, b0, b1 = tiro(n, p, segue_canto(slot))
         caso(f"piscada com 2 quadrados", piscada(masks) == FORMA_2, f"{[hex(m) for m in piscada(masks)]}")
         caso(f"mira no pato {alvo} -> acerto só no pato {alvo}", acertos == [alvo], f"{acertos}, pistola: {p.decisoes[-1]}")
         outro = 0x0301 if alvo == 2 else 0x0351
@@ -258,9 +346,8 @@ def main():
     s = n.mem._subject
     esperar_voando(n, p, (0x0300, 0x0350))
     tiro(n, p, CEU)
-    if not (s[0x0301] == 3 and s[0x0351] == 3):
-        esperar_voando(n, p, (0x0300, 0x0350))
-    masks, tiros, acertos, b0, b1 = tiro(n, p, segue(0x0350))
+    caso("os dois pratos voando e separados", esperar_separados(n, p, (0x0300, 0x0350)))
+    masks, tiros, acertos, b0, b1 = tiro(n, p, segue_canto(0x0350, dx=6, dy=-4))
     caso("mira no prato 2 -> acerto no prato 2", acertos == [2], f"{acertos}, pistola: {p.decisoes[-1]}")
 
     print("\nAtrasos diferentes (Game A, mira no pato)")

@@ -21,12 +21,12 @@ ROM alvo: **Duck Hunt (World)**, NROM-128 (16 KB PRG + 8 KB CHR), **CRC32 da ROM
 |---|---|---|
 | Quem decide o acerto | o jogo, olhando o botão A ("vejo luz") | a pistola, olhando a piscada na TV |
 | Piscada | K + 2 pretos + quadrado até a resposta voltar (~220 ms) | 2 pretos, 2 de quadrado, 1 preto (~83 ms); Game B: + 2 de quadrado e 1 preto (~133 ms) |
-| Botões do controle 2 | A = luz, B = gatilho | B = gatilho, A = acertou (alvo 1), A + B = acertou o alvo 2 |
+| Botões do controle 2 | A = luz, B = gatilho | A = luz (a ROM ignora), B = gatilho, Start = acertou (alvo 1), Select = acertou o alvo 2 |
 | O jogo espera a pistola? | sim, com o quadrado na tela | nunca: segue como erro e derruba o pato se o "acertou" chegar em até ~150 ms |
 | Menu CALIBRATION / RAM com bateria | sim (K, N, S) | não precisa (a pistola mede o próprio atraso) |
 | Fonte / patch | `src/patch.s` → `dist/duckhunt_pistola.ips` | `src/patch_p2.s` → `dist/duckhunt_pistola_p2.ips` |
-| Firmware | `#define PROTOCOLO 1` | `#define PROTOCOLO 2` |
-| CRC32 da cópia (sem cabeçalho) | `F85C4174` | `039228AF` |
+| Firmware | `pistola.ino` do commit `12b6aca`, com `#define PROTOCOLO 1` | `firmware pistola/pistola.ino` (só tem o protocolo 2) |
+| CRC32 da cópia (sem cabeçalho) | `F85C4174` | `852EA4B2` (a primeira V5, `039228AF`, usava A / A + B e não funciona com o firmware atual) |
 
 **Use a ROM e o firmware do mesmo protocolo.** O resto deste README descreve a V4, exceto a seção "V5" no fim. A regra da pistola na V5 está em [`firmware pistola/PROTOCOLO_NOVO.md`](firmware%20pistola/PROTOCOLO_NOVO.md).
 
@@ -89,8 +89,10 @@ Se o sensor não mudar em 1,5 s (pistola fora da TV ou sensor sempre aceso), a c
 | `src/patch_p2.s`, `src/patch_p2.cfg` | V5 (protocolo 2): código-fonte e configuração do ld65 |
 | `dist/duckhunt_pistola_p2.ips`, `dist/tabela_enderecos_p2.md` | V5: o patch e a tabela de endereços |
 | `test_p2.py` | Testes da V5 no NES simulado, com uma pistola simulada que segue o protocolo 2 |
-| `firmware pistola/pistola.ino` | Firmware da pistola (ESP32-S3), protocolos 1 e 2 |
+| `firmware pistola/pistola.ino` | Firmware da pistola (ESP32-S3), protocolo 2 (ROM V5) |
 | `firmware pistola/PROTOCOLO_NOVO.md` | A regra da pistola no protocolo 2 |
+| `firmware pistola/esquema_eletrico.png` | Esquema elétrico da pistola (sensor, gatilho, botões Start/Select opcionais, pilhas). Fonte: `esquema_eletrico.svg`, gerado por `esquema_eletrico.py` |
+| `firmware pistola/teste_pistola/teste_pistola.ino` | Teste de bancada: leitura do sensor de luz, gatilho e teste do fio do GPIO1 no Monitor Serial |
 
 `tools/` (cc65), `build/` e qualquer `.nes` ficam fora do Git.
 
@@ -235,7 +237,7 @@ python -P test_menu.py build\DuckHunt_pistola.nes
 2. Faça 20 tiros mirando no pato e 20 mirando no chão ou no céu. O esperado é 20 acertos e 0 acertos.
 3. Se precisar, ajuste com o direcional seguindo a tabela acima. Recalibre ao trocar para Bluetooth.
 
-> **Importante:** o ESP32 só pode mandar A e B na porta 2. No Game A, o direcional do controle 2 pilota o pato (rotina em `$CA7C`).
+> **Importante:** o ESP32 nunca pode mandar o direcional na porta 2: no Game A, o direcional do controle 2 pilota o pato (rotina em `$CA7C`, a única leitura do controle 2 no jogo original). A V4 usa só A e B; a V5 usa também Start e Select.
 
 ## Pendências (confirmar no Mesen)
 
@@ -251,29 +253,50 @@ python build.py "C:\caminho\do\seu\dump.nes" --protocolo 2      # gera dist/duck
 python -P test_p2.py build\DuckHunt_V5.nes
 ```
 
-### O que a V5 muda na ROM (só 3 pontos do original + 352 bytes novos em `$EF60`)
+### O que a V5 muda na ROM (só 3 pontos do original + 360 bytes novos em `$EF60`)
 
 | Endereço | Original | Novo | Para quê |
 |---|---|---|---|
 | cabeçalho | Zapper | controles padrão, sem RAM extra | o emulador põe um controle na porta 2 |
 | `$C071` | `JSR $C284` (lê os controles) | `JSR PorQuadro` | 1x por quadro: confere se chegou o "acertou" no prazo |
-| `$D131` | `LDA $4017` (gatilho da Zapper) | `JSR LerGatilho` | só B **sozinho** e fora do prazo é tiro; A + B é mensagem |
+| `$D131` | `LDA $4017` (gatilho da Zapper) | `JSR LerGatilho` | B fora do prazo é tiro, com ou sem A (luz); nunca junto com Start/Select |
 | `$D1C7` | `JSR $D292 / JSR $C61E` | `JMP FlashComQuadrado / JMP FlashSemQuadrado` | piscada curta e fixa, escutando o controle 2 |
 
-- **Depois da piscada o jogo segue pelo caminho original do erro** (`$D259`). Por 9 quadros (~150 ms) ainda aceita A (alvo 1) ou A + B (alvo 2) e, se chegar, derruba o pato **onde ele estiver**, com as mesmas três operações do acerto original (`$D246`: estado 4, `INC $AA`, `INC $BD`). Só derruba se o pato ainda estiver voando.
+- **A pistola manda A enquanto vê luz**, como um controle comum (isso facilita configurar no Recalbox). A ROM ignora o A.
+- **Depois da piscada o jogo segue pelo caminho original do erro** (`$D259`). Por 9 quadros (~150 ms) ainda aceita Start (alvo 1) ou Select (alvo 2) e, se chegar, derruba o pato **onde ele estiver**, com as mesmas três operações do acerto original (`$D246`: estado 4, `INC $AA`, `INC $BD`). Só derruba se o pato ainda estiver voando.
+- **Start e Select do controle 2 são livres:** o jogo original só lê o direcional do controle 2. A pistola se apresenta como um controle comum (A = HID 1, B = HID 2, Select = HID 11, Start = HID 12), então o Recalbox recebe Start e Select como Start e Select; o jogo continua no emulador de NES. O Hotkey da pistola pode ser o Select: o firmware nunca manda o A (luz) junto com o Select.
 - **A bala fica "devolvida" durante o prazo** e só é gasta quando ele acaba. Assim, na última bala, o pato não foge antes de um "acertou" atrasado chegar. A fuga sem balas (`$CA29`) acontece ~150 ms depois.
 - **Tela de título:** o tiro na TV acende o título por 2 quadros; o jogo espera o prazo e então começa a partida (acerto) ou passa para a próxima opção (erro).
 - RAM nova em `$07E0-$07E4` (página que o jogo não usa nem limpa no RESET).
 
-### Testes da V5 (`test_p2.py`, 36 casos, ~5 min)
+### Configurar a pistola no Recalbox (V5)
 
-A pistola simulada vê a TV com atraso (`Lout`), o que ela aperta chega no jogo com outro atraso (`Lin`), e ela segue as regras de `PROTOCOLO_NOVO.md`. Os testes cobrem:
+Ligação dos botões no [esquema elétrico](firmware%20pistola/esquema_eletrico.png): Start no GPIO4 e Select no GPIO5, cada um com o outro terminal no GND (opcionais, mas sem eles a configuração precisa dos gestos do modo mapeamento). Com o firmware gravado e a pistola pareada, em **configurar um controle**:
+
+| O Recalbox pede | Na pistola |
+|---|---|
+| segurar um botão para começar | luz no sensor por 1-2 s (lanterna ou lâmpada) |
+| A | luz rápida (menos de 1 s) |
+| B | gatilho |
+| START / SELECT | botões Start / Select |
+| HOTKEY | Select (o firmware nunca manda o A junto com o Select) |
+| qualquer outro item | segurar a luz por mais de 1 s (pula o item) |
+
+Sem os botões físicos, digite `m` no Monitor Serial (modo mapeamento): 1 puxada curta = Start, 2 = Select, 3 = Home, puxada longa = B. Depois de trocar a numeração dos botões no firmware, configure de novo: o Recalbox guarda o mapeamento pelo nome do controle.
+
+### Testes da V5 (`test_p2.py`, 46 casos, ~5 min)
+
+A pistola simulada vê a TV com atraso (`Lout`), o que ela aperta chega no jogo com outro atraso (`Lin`), e ela segue as regras de `PROTOCOLO_NOVO.md`, inclusive o A apertado enquanto vê luz. Os testes cobrem:
 - a forma da piscada (Game A: `P P Q Q P`; Game B: `P P Q1 Q1 P Q2 Q2 P`);
 - céu → erro, pato → acerto, um tiro registrado por gatilho (sem tiro fantasma), bala gasta só depois do prazo;
-- última bala no céu → o pato só foge depois do prazo; última bala no pato com envio lento (`Lin` = 5 quadros) → o acerto ainda vale;
-- Game B: pato 1 → só o pato 1; pato 2 → só o pato 2 (A + B); Game C: prato 2;
+- o gatilho vale com o A (luz do céu) apertado, e o A nunca conta como acerto;
+- Start e Select soltos no controle 2, fora de um tiro: nenhum tiro, nenhum acerto, nenhuma bala, sem pausa;
+- última bala no céu → o pato só foge depois do prazo; Start atrasado (Bluetooth lento) → vale dentro do prazo (e o pato não foge antes), não vale depois;
+- Game B: pato 1 → só o pato 1 (Start); pato 2 → só o pato 2 (Select); Game C: prato 2. Com os dois alvos separados e a mira num canto do quadrado (ver "Problema conhecido" em `PROTOCOLO_NOVO.md`);
 - atrasos diferentes (`Lout`/`Lin` de 1 a 4);
 - pistola com a ida errada (trocou USB/Bluetooth) → nenhum acerto falso, reaprende no tiro seguinte e volta a acertar;
 - tela de título: tiro fora → próxima opção; tiro na TV → começa a partida.
 
-O firmware também foi compilado no PC (Visual Studio, com o Arduino e as bibliotecas simulados) e rodado com relógio, TV e gatilho simulados: 13 cenários, nas versões Bluetooth e USB. **Ainda falta o teste na TV de verdade.**
+O jogo sorteia números enquanto espera cada quadro (`$C588`, chamado sem parar no laço principal), então qualquer mudança de ciclos na ROM muda o voo dos patos nos testes. Por isso os testes escolhem as condições (alvos separados, Start roteirizado) em vez de depender da sorte.
+
+**Ainda falta o teste na TV de verdade.**
