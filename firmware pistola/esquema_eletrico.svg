@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3200" height="2000" viewBox="0 0 3200 2000" font-family="DejaVu Sans, Verdana, Segoe UI, Arial, sans-serif">
+<rect width="3200" height="2000" fill="white"/>
+<text x="80" y="105" font-size="64" fill="#222222" font-weight="bold" text-anchor="start">Revolver do Duck Hunt — esquema elétrico</text>
+<text x="80" y="163" font-size="32" fill="#555555" text-anchor="start">ESP32-S3 Super Mini · 3× AA · TEPT4400 · gatilho microswitch · botões Start/Select · Bluetooth (BLE)</text>
+<polyline points="2190,124 2270,124" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="2290" y="134" font-size="30" fill="#555555" text-anchor="start">obrigatório</text>
+<polyline points="2510,124 2590,124" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="2610" y="134" font-size="30" fill="#555555" text-anchor="start">recomendado</text>
+<polyline points="2850,124 2930,124" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="14 10"/>
+<text x="2950" y="134" font-size="30" fill="#555555" text-anchor="start">opcional</text>
+<polyline points="298,879 421,879" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="298,998 421,998" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="298,1120 421,1120" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="327,911 393,911" fill="none" stroke="#222222" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="327,1031 393,1031" fill="none" stroke="#222222" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="327,1152 393,1152" fill="none" stroke="#222222" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="360,879 360,640 539,640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="360,1152 360,1640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="140" y="982" font-size="34" fill="#222222" font-weight="bold" text-anchor="middle">3× AA</text>
+<text x="140" y="1026" font-size="30" fill="#555555" text-anchor="middle">4,5 V</text>
+<text x="140" y="1064" font-size="24" fill="#555555" text-anchor="middle">(NiMH: 4×)</text>
+<text x="454" y="877" font-size="40" fill="#d1495b" text-anchor="middle">+</text>
+<text x="454" y="1200" font-size="40" fill="#222222" text-anchor="middle">−</text>
+<circle cx="549" cy="640" r="10" fill="white" stroke="#222222" stroke-width="5"/>
+<circle cx="689" cy="640" r="10" fill="white" stroke="#222222" stroke-width="5"/>
+<polyline points="557,635 678,579" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="619" y="537" font-size="32" fill="#222222" font-weight="bold" text-anchor="middle">Interruptor</text>
+<polyline points="699,640 899,640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="899,640 939,640" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="939,598 939,682 1010,640" fill="#2a9d6f"/>
+<polyline points="1013,596 1013,684" fill="none" stroke="#2a9d6f" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1013,640 1279,640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="975" y="562" font-size="32" fill="#2a9d6f" font-weight="bold" text-anchor="middle">Diodo 1N5819</text>
+<text x="975" y="728" font-size="24" fill="#2a9d6f" text-anchor="middle">protege ao ligar o USB</text>
+<polyline points="799,640 799,813" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="14 10"/>
+<polyline points="799,813 826,825.1666666666666 772,849.5 826,873.8333333333334 772,898.1666666666666 826,922.5 772,946.8333333333333 799,959" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="799,959 799,1174" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="14 10"/>
+<polyline points="799,1079 1279,1079" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="14 10"/>
+<polyline points="799,1174 826,1186.1666666666667 772,1210.5 826,1234.8333333333333 772,1259.1666666666667 826,1283.5 772,1307.8333333333333 799,1320" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="799,1320 799,1636" fill="none" stroke="#8a8a8a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="14 10"/>
+<circle cx="799" cy="640" r="10" fill="#8a8a8a"/>
+<circle cx="799" cy="1079" r="10" fill="#8a8a8a"/>
+<text x="850" y="897" font-size="28" fill="#555555" text-anchor="start">100 kΩ</text>
+<text x="850" y="1259" font-size="28" fill="#555555" text-anchor="start">100 kΩ</text>
+<text x="850" y="1440" font-size="28" fill="#555555" text-anchor="start">medidor de bateria</text>
+<text x="850" y="1476" font-size="28" fill="#555555" text-anchor="start">(opcional)</text>
+<rect x="1279" y="500" width="519" height="800" rx="18" fill="#1f2937" stroke="#111111" stroke-width="3"/>
+<rect x="1390" y="800" width="236" height="179" rx="8" fill="#334155" stroke="#64748b" stroke-width="2"/>
+<text x="1508" y="880" font-size="32" fill="white" font-weight="bold" text-anchor="middle">ESP32-S3</text>
+<text x="1508" y="925" font-size="26" fill="#cbd5e1" text-anchor="middle">Super Mini</text>
+<rect x="1488" y="1238" width="100" height="62" rx="6" fill="#9ca3af"/>
+<text x="1538" y="1352" font-size="24" fill="#555555" text-anchor="middle">USB-C (só gravar)</text>
+<text x="1538" y="558" font-size="32" fill="white" font-weight="bold" text-anchor="middle">3V3</text>
+<text x="1305" y="652" font-size="32" fill="white" font-weight="bold" text-anchor="start">5V</text>
+<text x="1772" y="671" font-size="32" fill="white" font-weight="bold" text-anchor="end">GPIO1</text>
+<text x="1772" y="951" font-size="32" fill="white" font-weight="bold" text-anchor="end">GPIO2</text>
+<text x="1305" y="1091" font-size="32" fill="white" font-weight="bold" text-anchor="start">GPIO3</text>
+<text x="1305" y="1211" font-size="32" fill="white" font-weight="bold" text-anchor="start">GND</text>
+<text x="1380" y="1268" font-size="32" fill="white" font-weight="bold" text-anchor="middle">GPIO4</text>
+<text x="1700" y="1268" font-size="32" fill="white" font-weight="bold" text-anchor="middle">GPIO5</text>
+<polyline points="1538,500 1538,340 2298,340 2298,458" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="2278" cy="529" r="80" fill="none" stroke="#222222" stroke-width="5"/>
+<polyline points="2246,483 2246,575" fill="none" stroke="#222222" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2246,508 2298,458" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2246,550 2278.390393595256,581.1907493880238" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="2300,602 2269.4,590.6 2287.4,571.8" fill="#222222"/>
+<polyline points="2298,600 2298,813" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="2322" y="420" font-size="26" fill="#555555" text-anchor="start">C</text>
+<text x="2322" y="638" font-size="26" fill="#555555" text-anchor="start">E</text>
+<polyline points="2457,452 2393.1159843063215,486.7195737465644" fill="none" stroke="#e09b00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="2365,502 2386.4,474.4 2399.8,499.0" fill="#e09b00"/>
+<polyline points="2477,512 2413.1159843063215,546.7195737465644" fill="none" stroke="#e09b00" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon points="2385,562 2406.4,534.4 2419.8,559.0" fill="#e09b00"/>
+<text x="2500" y="440" font-size="28" fill="#e09b00" text-anchor="start">luz da tela</text>
+<text x="2410" y="640" font-size="36" fill="#222222" font-weight="bold" text-anchor="start">TEPT4400</text>
+<text x="2410" y="682" font-size="26" fill="#555555" text-anchor="start">C (coletor) em cima, E (emissor) embaixo</text>
+<text x="2410" y="718" font-size="26" fill="#555555" text-anchor="start">confira as pernas no datasheet</text>
+<polyline points="1798,659 2298,659" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="2040" y="642" font-size="26" fill="#555555" text-anchor="middle">sinal analógico</text>
+<polyline points="2298,813 2325,826.75 2271,854.25 2325,881.75 2271,909.25 2325,936.75 2271,964.25 2298,978" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2298,978 2298,1640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="2345" y="882" font-size="34" fill="#222222" font-weight="bold" text-anchor="start">10 kΩ</text>
+<text x="2345" y="920" font-size="26" fill="#555555" text-anchor="start">(testar 4,7k–22k)</text>
+<polyline points="1798,939 2079,939 2079,1121" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="2079" cy="1131" r="10" fill="white" stroke="#222222" stroke-width="5"/>
+<circle cx="2079" cy="1269" r="10" fill="white" stroke="#222222" stroke-width="5"/>
+<polyline points="2075,1259 2021,1125" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2079,1279 2079,1640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1918" y="920" font-size="26" fill="#555555" text-anchor="middle">pull-up interno</text>
+<text x="1998" y="1180" font-size="34" fill="#222222" font-weight="bold" text-anchor="end">Gatilho</text>
+<text x="1998" y="1220" font-size="26" fill="#555555" text-anchor="end">microswitch</text>
+<text x="1998" y="1254" font-size="26" fill="#555555" text-anchor="end">COM + NA</text>
+<polyline points="1380,1300 1380,1410" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1380" cy="1420" r="10" fill="white" stroke="#2a9d6f" stroke-width="5"/>
+<circle cx="1380" cy="1540" r="10" fill="white" stroke="#2a9d6f" stroke-width="5"/>
+<polyline points="1376,1530 1322,1414" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1380,1550 1380,1640" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1305" y="1478" font-size="32" fill="#2a9d6f" font-weight="bold" text-anchor="end">Start</text>
+<text x="1305" y="1512" font-size="24" fill="#555555" text-anchor="end">botão</text>
+<polyline points="1700,1300 1700,1410" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1700" cy="1420" r="10" fill="white" stroke="#2a9d6f" stroke-width="5"/>
+<circle cx="1700" cy="1540" r="10" fill="white" stroke="#2a9d6f" stroke-width="5"/>
+<polyline points="1696,1530 1642,1414" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="1700,1550 1700,1640" fill="none" stroke="#2a9d6f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1625" y="1478" font-size="32" fill="#2a9d6f" font-weight="bold" text-anchor="end">Select</text>
+<text x="1625" y="1512" font-size="24" fill="#555555" text-anchor="end">botão</text>
+<polyline points="1279,1199 1160,1199 1160,1640" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="360,1640 2618,1640 2618,1680" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1160" cy="1640" r="11" fill="#222222"/>
+<circle cx="1380" cy="1640" r="11" fill="#222222"/>
+<circle cx="1700" cy="1640" r="11" fill="#222222"/>
+<circle cx="2079" cy="1640" r="11" fill="#222222"/>
+<circle cx="2298" cy="1640" r="11" fill="#222222"/>
+<circle cx="2298" cy="659" r="11" fill="#222222"/>
+<circle cx="1538" cy="500" r="9" fill="#eab308"/>
+<circle cx="1279" cy="640" r="9" fill="#eab308"/>
+<circle cx="1798" cy="659" r="9" fill="#eab308"/>
+<circle cx="1798" cy="939" r="9" fill="#eab308"/>
+<circle cx="1279" cy="1079" r="9" fill="#eab308"/>
+<circle cx="1279" cy="1199" r="9" fill="#eab308"/>
+<circle cx="1380" cy="1300" r="9" fill="#eab308"/>
+<circle cx="1700" cy="1300" r="9" fill="#eab308"/>
+<polyline points="2578,1680 2658,1680" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2593,1700 2643,1700" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="2608,1720 2628,1720" fill="none" stroke="#222222" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="2680" y="1652" font-size="34" fill="#222222" font-weight="bold" text-anchor="start">GND</text>
+<rect x="80" y="1752" width="3040" height="226" rx="16" fill="#f6f7fa" stroke="#c9d0dc" stroke-width="3"/>
+<text x="120" y="1806" font-size="27" fill="#333333"><tspan font-weight="bold">Pilhas no pino 5V</tspan>, nunca no 3V3 (o regulador da placa baixa para 3,3 V).</text>
+<text x="120" y="1854" font-size="27" fill="#333333"><tspan font-weight="bold">Sensor em pino ADC1</tspan> (GPIO1–10 no S3). O ADC2 conflita com o rádio Bluetooth/Wi-Fi.</text>
+<text x="120" y="1902" font-size="27" fill="#333333"><tspan font-weight="bold">Gatilho, Start e Select:</tspan> INPUT_PULLUP (GPIO2, GPIO4, GPIO5), apertado = LOW.</text>
+<text x="120" y="1950" font-size="27" fill="#333333"><tspan font-weight="bold">Start e Select:</tspan> botões opcionais; durante um tiro o firmware os ignora.</text>
+<text x="1700" y="1806" font-size="27" fill="#333333"><tspan font-weight="bold">USB-C:</tspan> só para gravar. Por segurança, desligue o interruptor antes de conectar.</text>
+<text x="1700" y="1854" font-size="27" fill="#333333"><tspan font-weight="bold">Pinos são sugestão:</tspan> confira a serigrafia da sua placa.</text>
+<text x="1700" y="1902" font-size="27" fill="#333333"><tspan font-weight="bold">Divisor 100k/100k:</tspan> GPIO3 lê metade da tensão das pilhas.</text>
+<text x="1700" y="1950" font-size="27" fill="#333333"><tspan font-weight="bold">Gamepad:</tspan> A = luz, B = gatilho, Start = pato 1 ou botão, Select = pato 2 ou botão.</text>
+</svg>

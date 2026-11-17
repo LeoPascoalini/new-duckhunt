@@ -11,7 +11,8 @@ Saídas (protocolo 1 / protocolo 2):
     build/DuckHunt_pistola.nes     / build/DuckHunt_V5.nes              cópia patcheada (fora do git)
 
 Protocolo 1 (V4): A = "vejo luz", o jogo decide o acerto; calibração K/N/S no menu.
-Protocolo 2 (V5): a pistola decide e aperta A (alvo 1) ou A+B (alvo 2); sem menu de calibração.
+Protocolo 2 (V5): A = luz (ignorado), B = gatilho; a pistola decide e aperta Start (alvo 1)
+ou Select (alvo 2); sem menu de calibração.
 A ROM original nunca é escrita.
 """
 import argparse
@@ -67,7 +68,7 @@ TRECHOS_P2 = [
     ("p2_C071.bin", 0xC071, bytes.fromhex("2084C2"),
      "JSR $C284 (lê os controles) -> JSR PorQuadro (confere o acertou no prazo)"),
     ("p2_D131.bin", 0xD131, bytes.fromhex("AD1740"),
-     "LDA $4017 (gatilho da Zapper) -> JSR LerGatilho (só B sozinho, fora do prazo)"),
+     "LDA $4017 (gatilho da Zapper) -> JSR LerGatilho (B, com ou sem A, sem Start/Select, fora do prazo)"),
     ("p2_D1C7.bin", 0xD1C7, bytes.fromhex("2092D2201EC6"),
      "JSR $D292 / JSR $C61E -> JMP FlashComQuadrado / JMP FlashSemQuadrado (piscada curta)"),
     ("p2_NOVO.bin", 0xEF60, None,
